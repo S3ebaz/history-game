@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ecos de México · Del Caudillismo al presente</title>
+<meta name="description" content="Línea de tiempo interactiva de la Historia de México: desde el Caudillismo (1821) hasta el México contemporáneo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;700;800&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#E9E1CB;
+    --paper-deep:#DED2AF;
+    --paper-card:#F2ECD9;
+    --ink:#2A241E;
+    --ink-soft:#5C5142;
+    --rule:rgba(42,36,30,.22);
+    --oxblood:#7A2226; --oxblood-bg:#F1DEDC;
+    --brass:#6B4E14; --brass-bg:#F1E6C9;
+    --bottle:#24402A; --bottle-bg:#DCE7DE;
+    --indigo:#263759; --indigo-bg:#DEE3EE;
+    --gold:#8B6914; --gold-bg:#F5F0D8;
+    --slate:#3A4A5C; --slate-bg:#E4E9EF;
+    --font-display:'Bitter',Georgia,'Times New Roman',serif;
+    --font-body:'Lora',Georgia,'Times New Roman',serif;
+    --font-mono:'Space Mono','Courier New',monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *{animation-duration:.001ms !important;transition-duration:.001ms !important}
+  }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font-body);
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+    background-image:
+      radial-gradient(ellipse at 12% -10%, rgba(255,255,255,.5), transparent 45%),
+      radial-gradient(ellipse at 100% 0%, rgba(0,0,0,.05), transparent 40%);
+  }
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  a{color:inherit}
+  button{font-family:inherit;cursor:pointer}
+
+  /* ---------- masthead ---------- */
+  .masthead{
+    max-width:960px;
+    margin:0 auto;
+    padding:3.2rem 2rem 1.8rem;
+  }
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin:0 0 .9rem;
+  }
+  .eyebrow::before{content:'§ '}
+  h1{
+    font-family:var(--font-display);
+    font-weight:800;
+    font-size:3.4rem;
+    line-height:1.05;
+    letter-spacing:-.01em;
+    margin:0 0 .4rem;
+    color:var(--ink);
+  }
+  h1 em{
+    display:block;
+    font-family:var(--font-body);
+    font-style:italic;
+    font-weight:500;
+    font-size:.40em;
+    color:var(--oxblood);
+    margin-top:.3em;
+    letter-spacing:0;
+  }
+  .dek{
+    font-size:1.08rem;
+    color:var(--ink-soft);
+    max-width:58ch;
+    margin:1rem 0 0;
+  }
+  .rule{
+    border:none;
+    border-top:1px solid var(--rule);
+    margin:1.5rem 0;
+  }
+  .legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:.5rem;
+  }
+  .chip{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    background:transparent;
+    border:1px solid var(--rule);
+    border-radius:999px;
+    padding:6px 13px 6px 10px;
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    letter-spacing:.03em;
+    color:var(--ink-soft);
+    transition:border-color .15s ease, color .15s ease, background .15s ease;
+  }
+  .chip:hover{border-color:var(--ink-soft)}
+  .chip .dot{width:8px;height:8px;border-radius:50%;background:var(--ink-soft);flex:0 0 auto}
+  .chip[data-filter="caudillismo"] .dot{background:var(--gold)}
+  .chip[data-filter="porfiriato"] .dot{background:var(--slate)}
+  .chip[data-filter="revolucion"] .dot{background:var(--bottle)}
+  .chip[data-filter="postrev"] .dot{background:var(--indigo)}
+  .chip[data-filter="contemporaneo"] .dot{background:#4A6741}
+  .chip.active{color:var(--ink);border-color:var(--ink);background:var(--paper-card)}
+
+  /* ---------- timeline ---------- */
+  .timeline-wrap{
+    background:var(--paper-deep);
+    border-top:1px solid var(--rule);
+    border-bottom:1px solid var(--rule);
+  }
+  .timeline-scroll{
+    overflow-x:auto;
+    overflow-y:hidden;
+    scrollbar-width:thin;
+  }
+  .timeline-track{
+    position:relative;
+    display:flex;
+    align-items:flex-start;
+    gap:42px;
+    padding:36px 48px 28px;
+    min-width:max-content;
+    margin:0 auto;
+  }
+  .track-line{
+    position:absolute;
+    left:0; right:0; top:88px;
+    height:2px;
+    background:var(--ink-soft);
+    opacity:.5;
+    z-index:0;
+  }
+  .marker{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    width:96px;
+    flex:0 0 auto;
+    background:none;
+    border:none;
+    padding:0;
+    z-index:1;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .marker-year{
+    display:block;
+    font-family:var(--font-mono);
+    font-size:11px;
+    line-height:13px;
+    letter-spacing:.02em;
+    color:var(--ink-soft);
+    margin-bottom:9px;
+    white-space:nowrap;
+    text-align:center;
+  }
+  .seal{
+    width:54px;height:54px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--paper-card);
+    border:2px solid currentColor;
+    box-shadow:0 0 0 3px var(--paper-deep), 0 0 0 5px currentColor;
+    transition:transform .18s ease, background .18s ease;
+  }
+  .seal-icon{width:25px;height:25px;color:currentColor}
+  .seal-icon *{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+  .c-caudillismo{color:var(--gold)}
+  .c-porfiriato{color:var(--slate)}
+  .c-revolucion{color:var(--bottle)}
+  .c-postrev{color:var(--indigo)}
+  .c-contemporaneo{color:#4A6741}
+  .marker:hover .seal,
+  .marker:focus-visible .seal{transform:translateY(-3px) scale(1.06)}
+  .marker:focus-visible{outline:none}
+  .marker.active .seal{background:currentColor}
+  .marker.active .seal-icon{color:var(--paper-card)}
+  .marker.active .marker-year{color:var(--ink);font-weight:700}
+  .marker.active::after{
+    content:'';
+    position:absolute;
+    bottom:-12px; left:50%;
+    width:8px;height:8px;
+    background:currentColor;
+    transform:translateX(-50%) rotate(45deg);
+  }
+  .marker.dimmed{opacity:.28;filter:grayscale(.6)}
+
+  /* ---------- dossier ---------- */
+  .dossier-section{
+    max-width:960px;
+    margin:0 auto;
+    padding:2.4rem 2rem 3.2rem;
+  }
+  .dossier-card{
+    position:relative;
+    background:var(--paper-card);
+    border:1px solid var(--rule);
+    border-radius:4px;
+    padding:2rem 2.2rem 2.2rem;
+    transition:opacity .2s ease, transform .2s ease;
+  }
+  .dossier-card.swap{opacity:0;transform:translateY(8px)}
+  .file-tab{
+    position:absolute;
+    top:-12px; right:22px;
+    background:var(--ink);
+    color:var(--paper-card);
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:.06em;
+    padding:4px 11px;
+    border-radius:2px;
+  }
+  .dossier-head{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    margin-bottom:1.3rem;
+  }
+  .seal.big{width:68px;height:68px;flex:0 0 auto}
+  .seal.big .seal-icon{width:32px;height:32px}
+  .d-eyebrow{
+    font-family:var(--font-mono);
+    font-size:12px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    margin:0 0 .35rem;
+    color:var(--ink-soft);
+  }
+  .d-eyebrow .accent{font-weight:700}
+  .dossier-head h2{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:1.55rem;
+    margin:0;
+    line-height:1.2;
+  }
+  .d-body{
+    font-size:1.02rem;
+    color:var(--ink);
+    max-width:68ch;
+    margin:0 0 1.2rem;
+  }
+  .d-body p{margin:0 0 .85rem}
+  .d-body ul{
+    margin:.4rem 0 1rem;
+    padding-left:1.2rem;
+  }
+  .d-body li{margin-bottom:.35rem}
+  .d-facts{
+    list-style:none;
+    margin:0 0 1.4rem; padding:0;
+    display:flex; flex-wrap:wrap; gap:7px;
+  }
+  .d-facts li{
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    padding:5px 10px;
+    border-radius:3px;
+  }
+  .images-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:12px;
+    margin-top:1.2rem;
+  }
+  .img-card{
+    background:var(--paper);
+    border:1px solid var(--rule);
+    border-radius:3px;
+    overflow:hidden;
+  }
+  .img-card img{
+    width:100%;
+    height:130px;
+    object-fit:cover;
+    display:block;
+    background:#d4c9a8;
+  }
+  .img-card figcaption{
+    font-family:var(--font-mono);
+    font-size:10.5px;
+    padding:7px 9px;
+    color:var(--ink-soft);
+    line-height:1.35;
+  }
+  .note{
+    font-size:.9rem;
+    color:var(--ink-soft);
+    font-style:italic;
+    margin-top:1.1rem;
+    border-top:1px solid var(--rule);
+    padding-top:.9rem;
+  }
+
+  @media (max-width:640px){
+    .masthead{padding:2rem 1.1rem 1.2rem}
+    h1{font-size:2.2rem}
+    .dek{font-size:.98rem}
+    .dossier-section{padding:1.5rem 1.1rem 2.2rem}
+    .dossier-card{padding:1.4rem 1.15rem 1.5rem}
+    .dossier-head{flex-direction:column;align-items:flex-start;gap:12px}
+    .dossier-head h2{font-size:1.25rem}
+  }
+
+  footer{
+    text-align:center;
+    padding:1.8rem 1rem 2.8rem;
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:.03em;
+    color:var(--ink-soft);
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Caudillismo -->
+    <symbol id="icon-sword" viewBox="0 0 40 40">
+      <line x1="12" y1="28" x2="28" y2="12"/>
+      <path d="M26 10l4 4"/>
+      <path d="M10 26l4 4"/>
+      <line x1="14" y1="30" x2="10" y2="34"/>
+      <line x1="16" y1="28" x2="12" y2="32"/>
+    </symbol>
+    <!-- Porfiriato -->
+    <symbol id="icon-train" viewBox="0 0 40 40">
+      <rect x="8" y="16" width="24" height="12" rx="2"/>
+      <circle cx="14" cy="30" r="3"/>
+      <circle cx="26" cy="30" r="3"/>
+      <line x1="12" y1="16" x2="12" y2="10"/>
+      <path d="M12 10h10l4 6"/>
+    </symbol>
+    <!-- Revolución -->
+    <symbol id="icon-star" viewBox="0 0 40 40">
+      <path d="M20 8l3 9h9l-7 5 3 9-8-6-8 6 3-9-7-5h9z"/>
+    </symbol>
+    <!-- Postrev -->
+    <symbol id="icon-building" viewBox="0 0 40 40">
+      <path d="M8 32V14l12-6 12 6v18"/>
+      <line x1="14" y1="20" x2="14" y2="26"/>
+      <line x1="20" y1="18" x2="20" y2="26"/>
+      <line x1="26" y1="20" x2="26" y2="26"/>
+      <line x1="8" y1="32" x2="32" y2="32"/>
+    </symbol>
+    <!-- Contemporáneo -->
+    <symbol id="icon-modern" viewBox="0 0 40 40">
+      <rect x="10" y="12" width="8" height="20"/>
+      <rect x="22" y="8" width="8" height="24"/>
+      <line x1="12" y1="16" x2="16" y2="16"/>
+      <line x1="12" y1="20" x2="16" y2="20"/>
+      <line x1="24" y1="12" x2="28" y2="12"/>
+      <line x1="24" y1="16" x2="28" y2="16"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="masthead">
+  <p class="eyebrow">Expediente histórico · México</p>
+  <h1>Del Caudillismo al presente<em>línea de tiempo interactiva</em></h1>
+  <p class="dek">Desde la Independencia consumada hasta el México de hoy. Toca un sello en la línea para abrir el expediente de cada época y ver la información completa con imágenes.</p>
+  <hr class="rule">
+  <div class="legend" role="group" aria-label="Filtrar por periodo">
+    <button class="chip active" data-filter="all"><span class="dot"></span>Todo</button>
+    <button class="chip" data-filter="caudillismo"><span class="dot"></span>Caudillismo</button>
+    <button class="chip" data-filter="porfiriato"><span class="dot"></span>Porfiriato</button>
+    <button class="chip" data-filter="revolucion"><span class="dot"></span>Revolución</button>
+    <button class="chip" data-filter="postrev"><span class="dot"></span>Postrevolución</button>
+    <button class="chip" data-filter="contemporaneo"><span class="dot"></span>Contemporáneo</button>
+  </div>
+</header>
+
+<section class="timeline-wrap" aria-label="Línea de tiempo de la Historia de México">
+  <div class="timeline-scroll">
+    <div class="timeline-track">
+      <div class="track-line" aria-hidden="true"></div>
+
+      <button class="marker" data-id="1" data-cat="caudillismo">
+        <span class="marker-year">1821</span>
+        <span class="seal c-caudillismo"><svg class="seal-icon" aria-hidden="true"><use href="#icon-sword"/></svg></span>
+        <span class="sr-only">Caudillismo</span>
+      </button>
+
+      <button class="marker" data-id="2" data-cat="porfiriato">
+        <span class="marker-year">1876</span>
+        <span class="seal c-porfiriato"><svg class="seal-icon" aria-hidden="true"><use href="#icon-train"/></svg></span>
+        <span class="sr-only">Porfiriato</span>
+      </button>
+
+      <button class="marker" data-id="3" data-cat="revolucion">
+        <span class="marker-year">1910</span>
+        <span class="seal c-revolucion"><svg class="seal-icon" aria-hidden="true"><use href="#icon-star"/></svg></span>
+        <span class="sr-only">Revolución Mexicana</span>
+      </button>
+
+      <button class="marker" data-id="4" data-cat="postrev">
+        <span class="marker-year">1920</span>
+        <span class="seal c-postrev"><svg class="seal-icon" aria-hidden="true"><use href="#icon-building"/></svg></span>
+        <span class="sr-only">México Postrevolucionario</span>
+      </button>
+
+      <button class="marker" data-id="5" data-cat="contemporaneo">
+        <span class="marker-year">1940</span>
+        <span class="seal c-contemporaneo"><svg class="seal-icon" aria-hidden="true"><use href="#icon-modern"/></svg></span>
+        <span class="sr-only">México Contemporáneo</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<section class="dossier-section">
+  <article class="dossier-card" id="dossier" aria-live="polite">
+    <span class="file-tab">Expediente n.º <span id="d-num">01</span></span>
+    <div class="dossier-head">
+      <span class="seal big c-caudillismo" id="d-seal"><svg class="seal-icon" aria-hidden="true"><use id="d-icon-use" href="#icon-sword"/></svg></span>
+      <div>
+        <p class="d-eyebrow"><span class="accent" id="d-date">1821 – 1876</span> &nbsp;·&nbsp; <span id="d-cat">Caudillismo</span></p>
+        <h2 id="d-title">Era de los caudillos</h2>
+      </div>
+    </div>
+    <div class="d-body" id="d-body"></div>
+    <ul class="d-facts" id="d-facts"></ul>
+    <div class="images-grid" id="d-images"></div>
+    <p class="note" id="d-note"></p>
+  </article>
+</section>
+
+<footer>
+  Elaborado a partir de apuntes de Historia de México · Línea de tiempo interactiva para repaso
+</footer>
+
+<script>
+const DATA = {
+  "1": {
+    cat: "caudillismo",
+    catLabel: "Caudillismo",
+    date: "1821 – 1876",
+    title: "Era de los caudillos",
+    icon: "icon-sword",
+    body: `
+      <p>Tras la Independencia, México carecía de instituciones sólidas. Surgieron “hombres fuertes” militares (caudillos) que gobernaban por la fuerza y el carisma.</p>
+      <ul>
+        <li><strong>Lucha de ideologías:</strong> Conservadores (centralistas, privilegios del clero y ejército) vs Liberales (república federal, laica y democrática).</li>
+        <li><strong>Antonio López de Santa Anna:</strong> Dominó el periodo ocupando la presidencia en 11 ocasiones distintas, alternando entre posturas liberales y conservadoras.</li>
+        <li><strong>Consecuencias:</strong> La constante lucha entre caudillos debilitó al país frente a intervenciones extranjeras. Independencia de Texas (1836), Guerra de los Pasteles con Francia (1838) y especialmente la Guerra México-Estados Unidos (1846–1848), que culminó con el Tratado de Guadalupe Hidalgo y la pérdida de más de la mitad del territorio nacional.</li>
+        <li><strong>Reforma Liberal y República Restaurada:</strong> Benito Juárez impulsó las Leyes de Reforma y la Constitución de 1857 para separar la Iglesia del Estado. Guerra de Reforma (1858–1861). Segunda Intervención Francesa e Imperio de Maximiliano (1862–1867). Tras el fusilamiento de Maximiliano en Querétaro (1867), Juárez restaura la República y sienta las bases de un Estado de derecho secular.</li>
+      </ul>
+    `,
+    facts: ["Santa Anna (11 veces presidente)", "Pérdida de territorio 1848", "Leyes de Reforma", "Juárez restaura la República 1867"],
+    images: [
+      {src: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Antonio_Lopez_de_Santa_Anna.jpg/320px-Antonio_Lopez_de_Santa_Anna.jpg", cap: "Antonio López de Santa Anna"},
+      {src: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Benito_Juarez.jpg/320px-Benito_Juarez.jpg", cap: "Benito Juárez"},
+      {src: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Maximiliano_I_de_Mexico.jpg/320px-Maximiliano_I_de_Mexico.jpg", cap: "Maximiliano de Habsburgo"}
+    ],
+    note: "El caudillismo temprano culminó con la llegada de Juárez y la consolidación de un Estado de derecho secular."
+  },
+  "2": {
+    cat: "porfiriato",
+    catLabel: "Porfiriato",
+    date: "1876 – 1911",
+    title: "La dictadura de Porfirio Díaz",
+    icon: "icon-train",
+    body: `
+      <p>Porfirio Díaz llegó al poder con el Plan de Tuxtepec (1876). Aunque comenzó como un caudillo militar liberal, transformó ese caudillismo en una dictadura institucionalizada. Bajo la consigna “Poca política, mucha administración”, pacificó el país por la fuerza (“paz porfiriana”), neutralizó a sus opositores y se rodeó de un grupo de intelectuales positivistas conocidos como “Los Científicos”.</p>
+      <ul>
+        <li><strong>Desarrollo económico:</strong> Expansión de la red ferroviaria (de ~600 km a más de 20,000 km), conectando centros mineros y agrícolas con los puertos y la frontera norte. Inversión extranjera masiva (estadounidense, británica y francesa) en minería, petróleo y textiles.</li>
+        <li><strong>Contradicciones sociales:</strong> Despojo de tierras comunales a campesinos e indígenas a través de las Leyes de Deslinde, consolidando latifundios y haciendas. Explotación laboral extrema que desencadenó huelgas históricas como Cananea (1906) y Río Blanco (1907), antecedentes directos de la Revolución.</li>
+      </ul>
+    `,
+    facts: ["Plan de Tuxtepec 1876", "+20,000 km de ferrocarriles", "Los Científicos", "Cananea 1906 · Río Blanco 1907"],
+    images: [
+      {src: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Porfirio_Diaz.jpg/320px-Porfirio_Diaz.jpg", cap: "Porfirio Díaz"},
+      {src: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Ferrocarril_Mexicano.jpg/320px-Ferrocarril_Mexicano.jpg", cap: "Ferrocarriles porfirianos"}
+    ],
+    note: "El progreso material se construyó sobre una profunda desigualdad social y la represión política."
+  },
+  "3": {
+    cat: "revolucion",
+    catLabel: "Revolución Mexicana",
+    date: "1910 – 1920",
+    title: "La Revolución y la Constitución de 1917",
+    icon: "icon-star",
+    body: `
+      <p>El descontento por la reelección de Díaz en 1910 llevó a Francisco I. Madero a promulgar el Plan de San Luis, convocando al levantamiento armado el 20 de noviembre de 1910.</p>
+      <ul>
+        <li><strong>Maderismo (1910–1913):</strong> Díaz renuncia en 1911. Madero asume la presidencia pero enfrenta presiones de campesinos (Zapata promulga el Plan de Ayala pidiendo restitución de tierras) y de antiguos porfiristas.</li>
+        <li><strong>La Decena Trágica (1913):</strong> Golpe de Estado orquestado por Victoriano Huerta que culmina con el asesinato de Madero.</li>
+        <li><strong>Constitucionalismo:</strong> Venustiano Carranza promulga el Plan de Guadalupe para derrocar a Huerta, formando el Ejército Constitucionalista junto a Francisco Villa y Emiliano Zapata.</li>
+        <li><strong>Caudillos revolucionarios:</strong> Emiliano Zapata en el sur (“Tierra y Libertad”), Francisco Villa en el norte (Ejército del Norte), Carranza y Álvaro Obregón (movimiento constitucionalista).</li>
+        <li><strong>Constitución de 1917</strong> (5 de febrero, Santiago de Querétaro): Pionera en incorporar derechos sociales a nivel mundial.
+          <ul>
+            <li><strong>Art. 3°:</strong> Educación laica, gratuita y obligatoria.</li>
+            <li><strong>Art. 27°:</strong> Propiedad de la tierra y recursos naturales para la Nación; base para la reforma agraria.</li>
+            <li><strong>Art. 123°:</strong> Derechos laborales (jornada de 8 horas, salario mínimo, etc.).</li>
+          </ul>
+        </li>
+      </ul>
+    `,
+    facts: ["20 nov 1910", "Constitución 5 feb 1917", "Art. 3°, 27° y 123°", "Zapata · Villa · Carranza · Obregón"],
+    images: [
+      {src: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Francisco_I_Madero.jpg/320px-Francisco_I_Madero.jpg", cap: "Francisco I. Madero"},
+      {src: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Emiliano_Zapata.jpg/320px-Emiliano_Zapata.jpg", cap: "Emiliano Zapata"},
+      {src: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Constitucion_1917.jpg/320px-Constitucion_1917.jpg", cap: "Promulgación de la Constitución 1917"}
+    ],
+    note: "La Constitución de 1917 es una de las primeras del mundo en incorporar derechos sociales de manera explícita."
+  },
+  "4": {
+    cat: "postrev",
+    catLabel: "México Postrevolucionario",
+    date: "1920 – 1940",
+    title: "Del caudillismo a las instituciones",
+    icon: "icon-building",
+    body: `
+      <p>Tras la Revolución, los caudillos supervivientes (Álvaro Obregón y Plutarco Elías Calles) mantuvieron el control del país. Se inicia la transición de la era de los caudillos al México de instituciones.</p>
+      <ul>
+        <li><strong>Gobiernos del Grupo Sonora:</strong> Álvaro Obregón (1920–1924) y Plutarco Elías Calles (1924–1928). Enfrentan la Guerra Cristera (1926–1929).</li>
+        <li><strong>Guerra Cristera (1926–1929):</strong> El gobierno de Calles aprobó leyes estrictas que limitaban la libertad religiosa. La Iglesia suspendió las misas en 1926. Campesinos católicos (“cristeros”) se levantaron en armas con el grito de “¡Viva Cristo Rey!”. Causó alrededor de 250,000 muertes. En 1929 se logró un acuerdo de paz; las leyes no se cambiaron pero el gobierno dejó de aplicarlas con rigurosidad.</li>
+        <li><strong>Asesinato de Obregón</strong> (17 de julio de 1928) por el cristero José de León Toral. Deja un vacío de poder que Calles aprovecha.</li>
+        <li><strong>El Maximato (1928–1934):</strong> Calles gobierna de forma indirecta como el “Jefe Máximo de la Revolución” (el poder detrás del trono) a través de tres presidentes: Emilio Portes Gil (1928–1930), Pascual Ortiz Rubio (1930–1932, renunció por la intromisión de Calles) y Abelardo L. Rodríguez (1932–1934).</li>
+        <li><strong>Fundación del PNR (1929):</strong> Calles funda el Partido Nacional Revolucionario (antecesor del PRM y del PRI) para unificar a las facciones revolucionarias y resolver los conflictos por el poder mediante la política, no por las armas.</li>
+        <li><strong>Cardenismo (1934–1940):</strong> Lázaro Cárdenas asume la presidencia y se niega a ser controlado por Calles. Se apoya en los sectores obrero y campesino. En 1936 expulsa a Calles de México (exilio a EE.UU.). Realiza la Expropiación Petrolera (18 de marzo de 1938) y una reforma agraria masiva (reparto ejidal). Transforma el PNR en PRM (incorporando sectores obrero, campesino, militar y popular).</li>
+      </ul>
+    `,
+    facts: ["Guerra Cristera 1926-29", "Maximato 1928-34", "PNR 1929", "Expropiación petrolera 1938", "Fin del Maximato 1936"],
+    images: [
+      {src: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Plutarco_Elias_Calles.jpg/320px-Plutarco_Elias_Calles.jpg", cap: "Plutarco Elías Calles"},
+      {src: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Lazaro_Cardenas.jpg/320px-Lazaro_Cardenas.jpg", cap: "Lázaro Cárdenas"},
+      {src: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Expropiacion_Petrolera.jpg/320px-Expropiacion_Petrolera.jpg", cap: "Expropiación Petrolera 1938"}
+    ],
+    note: "Calles proclamó que México debía pasar de ser “un país de un solo hombre (caudillos)” a “un país de instituciones”."
+  },
+  "5": {
+    cat: "contemporaneo",
+    catLabel: "México Contemporáneo",
+    date: "1940 – Siglo XXI",
+    title: "Presidencialismo y transición democrática",
+    icon: "icon-modern",
+    body: `
+      <ul>
+        <li><strong>El “Milagro Mexicano” (1940–1970):</strong> Periodo de crecimiento económico sostenido impulsado por el modelo de Sustitución de Importaciones y la industrialización urbana.</li>
+        <li><strong>Crisis política y movimientos sociales (1968–1982):</strong> Tensión entre el modelo autoritario de partido único y las demandas de apertura democrática. Movimiento Estudiantil de 1968 (2 de octubre en Tlatelolco). Crisis económicas y devaluaciones recurrentes a finales de los años 70 y principios de los 80.</li>
+        <li><strong>Neoliberalismo y Transición Democrática (1982 en adelante):</strong> Apertura comercial con el Tratado de Libre Comercio de América del Norte (TLCAN, 1994). Levantamiento del EZLN en Chiapas (1994). Alternancia política (2000): fin de más de 70 años de hegemonía del PRI con la victoria presidencial del PAN.</li>
+      </ul>
+    `,
+    facts: ["Milagro Mexicano 1940-70", "Tlatelolco 2 oct 1968", "TLCAN 1994", "Alternancia 2000"],
+    images: [
+      {src: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Tlatelolco_1968.jpg/320px-Tlatelolco_1968.jpg", cap: "Movimiento estudiantil 1968"},
+      {src: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/TLCAN.jpg/320px-TLCAN.jpg", cap: "Firma del TLCAN"}
+    ],
+    note: "El siglo XX terminó con la transición de un sistema de partido hegemónico a una democracia de alternancia."
+  }
+};
+
+const CAT_BG = {
+  caudillismo: "var(--gold-bg)",
+  porfiriato: "var(--slate-bg)",
+  revolucion: "var(--bottle-bg)",
+  postrev: "var(--indigo-bg)",
+  contemporaneo: "#E8F0E6"
+};
+const CAT_TEXT = {
+  caudillismo: "var(--gold)",
+  porfiriato: "var(--slate)",
+  revolucion: "var(--bottle)",
+  postrev: "var(--indigo)",
+  contemporaneo: "#4A6741"
+};
+
+const markers = document.querySelectorAll(".marker");
+const dossier = document.getElementById("dossier");
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function render(id) {
+  const d = DATA[id];
+  if (!d) return;
+
+  function apply() {
+    document.getElementById("d-num").textContent = id.length < 2 ? "0" + id : id;
+    document.getElementById("d-date").textContent = d.date;
+    document.getElementById("d-cat").textContent = d.catLabel;
+    document.getElementById("d-title").textContent = d.title;
+    document.getElementById("d-body").innerHTML = d.body;
+    document.getElementById("d-note").textContent = d.note || "";
+
+    const seal = document.getElementById("d-seal");
+    seal.className = "seal big c-" + d.cat;
+    const use = document.getElementById("d-icon-use");
+    use.setAttribute("href", "#" + d.icon);
+
+    const factsList = document.getElementById("d-facts");
+    factsList.innerHTML = "";
+    d.facts.forEach(f => {
+      const li = document.createElement("li");
+      li.textContent = f;
+      li.style.background = CAT_BG[d.cat];
+      li.style.color = CAT_TEXT[d.cat];
+      factsList.appendChild(li);
+    });
+
+    const imgGrid = document.getElementById("d-images");
+    imgGrid.innerHTML = "";
+    if (d.images && d.images.length) {
+      d.images.forEach(img => {
+        const fig = document.createElement("figure");
+        fig.className = "img-card";
+        fig.innerHTML = `<img src="${img.src}" alt="${img.cap}" loading="lazy" onerror="this.parentElement.style.display='none'">
+                         <figcaption>${img.cap}</figcaption>`;
+        imgGrid.appendChild(fig);
+      });
+    }
+
+    markers.forEach(m => {
+      m.classList.toggle("active", m.getAttribute("data-id") === id);
+    });
+
+    if (!reduceMotion) {
+      dossier.classList.remove("swap");
+      requestAnimationFrame(() => dossier.classList.add("swap"));
+      setTimeout(() => dossier.classList.remove("swap"), 20);
+    }
+  }
+  apply();
+}
+
+markers.forEach(m => {
+  m.addEventListener("click", () => {
+    const id = m.getAttribute("data-id");
+    render(id);
+    const rect = dossier.getBoundingClientRect();
+    if (rect.top < 0 || rect.bottom > window.innerHeight) {
+      dossier.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+    }
+  });
+});
+
+document.querySelectorAll(".chip").forEach(chip => {
+  chip.addEventListener("click", () => {
+    document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+    chip.classList.add("active");
+    const f = chip.getAttribute("data-filter");
+    markers.forEach(m => {
+      const match = (f === "all" || m.getAttribute("data-cat") === f);
+      m.classList.toggle("dimmed", !match);
+    });
+  });
+});
+
+render("1");
+</script>
+</body>
+</html>
