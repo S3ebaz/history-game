@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Destinos de México · De lo antiguo a lo reciente</title>
+<meta name="description" content="Juego de decisiones sobre toda la Historia de México. Puntaje y juicio de acciones buenas o malas.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;700;800&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#E9E1CB; --paper-card:#F2ECD9;
+  --ink:#2A241E; --ink-soft:#5C5142; --rule:rgba(42,36,30,.22);
+  --oxblood:#7A2226; --gold:#6B4E14; --bottle:#24402A;
+  --font-display:'Bitter',Georgia,serif;
+  --font-body:'Lora',Georgia,serif;
+  --font-mono:'Space Mono','Courier New',monospace;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-body);line-height:1.65;min-height:100vh;
+  background-image:
+    radial-gradient(ellipse at 12% -10%, rgba(255,255,255,.5), transparent 45%),
+    radial-gradient(ellipse at 100% 0%, rgba(0,0,0,.05), transparent 40%);
+}
+button{font-family:inherit;cursor:pointer}
+.wrap{max-width:840px;margin:0 auto;padding:1.6rem 1.2rem 3rem}
+.hud{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:1.1rem}
+.stat{background:var(--paper-card);border:1px solid var(--rule);border-radius:4px;padding:7px 7px 9px}
+.stat-name{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 5px}
+.bar{height:7px;background:rgba(42,36,30,.12);border-radius:99px;overflow:hidden}
+.bar>i{display:block;height:100%;width:50%;background:var(--gold);transition:width .35s ease,background .35s ease}
+.stat-val{font-family:var(--font-mono);font-size:11px;margin-top:3px}
+.stat.score .stat-val{font-size:16px;font-weight:700}
+.chapter{font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 .55rem}
+h1,h2{font-family:var(--font-display);margin:0}
+h1{font-size:2.35rem;line-height:1.1;font-weight:800}
+h1 em{display:block;font-family:var(--font-body);font-style:italic;font-weight:500;font-size:.38em;color:var(--oxblood);margin-top:.35em}
+h2{font-size:1.45rem;line-height:1.2;margin:.15rem 0 .7rem}
+.card{background:var(--paper-card);border:1px solid var(--rule);border-radius:4px;padding:1.35rem;position:relative}
+.file-tab{position:absolute;top:-12px;right:16px;background:var(--ink);color:var(--paper-card);font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;padding:4px 10px;border-radius:2px}
+.scene-text p{margin:0 0 .75rem}
+.hint{font-size:.92rem;color:var(--ink-soft);font-style:italic;border-top:1px solid var(--rule);padding-top:.75rem;margin-top:.35rem}
+.choices{display:flex;flex-direction:column;gap:9px;margin-top:1rem}
+.choice{text-align:left;background:transparent;border:1px solid var(--rule);border-radius:4px;padding:11px 13px;color:var(--ink);font-size:.98rem;line-height:1.45}
+.choice:hover{background:#fff8e6;border-color:var(--ink-soft)}
+.choice strong{display:block;font-family:var(--font-display);font-size:1.01rem;margin-bottom:.12rem}
+.flash{font-family:var(--font-mono);font-size:12px;padding:8px 10px;border-radius:3px;margin:10px 0 0}
+.flash.buena{background:#DCE7DE;color:var(--bottle)}
+.flash.mala{background:#F1DEDC;color:var(--oxblood)}
+.flash.mixta{background:#F1E6C9;color:var(--gold)}
+.badge{display:inline-block;font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:2px;margin-right:6px}
+.badge.buena{background:#DCE7DE;color:var(--bottle)}
+.badge.mala{background:#F1DEDC;color:var(--oxblood)}
+.badge.mixta{background:#F1E6C9;color:var(--gold)}
+.screen{display:none}.screen.on{display:block}
+.start-actions,.end-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:1.1rem}
+.btn{background:var(--ink);color:var(--paper-card);border:none;border-radius:4px;padding:11px 16px;font-family:var(--font-mono);font-size:12px;letter-spacing:.04em;text-decoration:none;display:inline-block}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--rule)}
+.log h3{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin:1.1rem 0 .4rem}
+.log ul{margin:0;padding-left:1.1rem}
+.log li{margin-bottom:.35rem}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+footer{text-align:center;margin-top:1.8rem;font-family:var(--font-mono);font-size:11px;color:var(--ink-soft)}
+.diff-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:1.2rem}
+.diff-card{text-align:left;background:transparent;border:1px solid var(--rule);border-radius:4px;padding:1rem;color:var(--ink);font-family:inherit}
+.diff-card:hover{background:#fff8e6;border-color:var(--ink-soft)}
+.diff-card strong{display:block;font-family:var(--font-display);font-size:1.1rem;margin-bottom:.35rem}
+.diff-card p{margin:0;font-size:.88rem;color:var(--ink-soft)}
+.resume-box{background:var(--paper-card);border:1px solid var(--rule);border-radius:4px;padding:1rem 1.2rem;margin-top:1rem}
+.resume-box p{margin:0 0 .7rem}
+.playbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:.7rem}
+.playbar .btn{padding:8px 12px;font-size:11px}
+.lives{font-family:var(--font-mono);font-size:15px;letter-spacing:.1em;color:var(--oxblood)}
+.lives .lost{opacity:.28}
+.ask{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:1rem 0 .5rem}
+.overlay{position:fixed;inset:0;background:rgba(42,36,30,.55);display:none;align-items:center;justify-content:center;padding:1.2rem;z-index:10}
+.overlay.on{display:flex}
+.overlay .card{max-width:420px;width:100%}
+.overlay .end-actions{margin-top:1.3rem}
+.saved-flash{font-family:var(--font-mono);font-size:11px;color:var(--bottle);margin-top:.6rem}
+@media(max-width:720px){
+  .hud{grid-template-columns:1fr 1fr}
+  .cols{grid-template-columns:1fr}
+  h1{font-size:1.85rem}
+  .diff-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hud" id="hud" hidden>
+    <div class="stat score"><p class="stat-name">Puntaje</p><div class="stat-val" id="v-pts">0</div></div>
+    <div class="stat"><p class="stat-name">Estabilidad</p><div class="bar"><i id="b-est"></i></div><div class="stat-val" id="v-est">50</div></div>
+    <div class="stat"><p class="stat-name">Justicia</p><div class="bar"><i id="b-jus"></i></div><div class="stat-val" id="v-jus">50</div></div>
+    <div class="stat"><p class="stat-name">Soberanía</p><div class="bar"><i id="b-sob"></i></div><div class="stat-val" id="v-sob">50</div></div>
+    <div class="stat"><p class="stat-name">Instituciones</p><div class="bar"><i id="b-ins"></i></div><div class="stat-val" id="v-ins">50</div></div>
+  </div>
+
+  <section class="screen on" id="screen-start">
+    <p class="chapter">De lo más antiguo a lo más reciente</p>
+    <h1>Destinos de México<em>decisiones, puntaje y consecuencias</em></h1>
+    <div class="card" style="margin-top:1.2rem">
+      <p>Recorres la Historia de México desde Mesoamérica hasta el año 2000. En cada época eliges un camino.</p>
+      <p>Cada decisión recibe una etiqueta:</p>
+      <p><span class="badge buena">Buena</span> suma puntos y ayuda al país &nbsp; <span class="badge mixta">Mixta</span> ayuda en una cosa y lastima en otra &nbsp; <span class="badge mala">Mala</span> resta puntos.</p>
+      <p>Si una barra llega a 0, pierdes. Al final verás tu <strong>puntaje</strong> y la lista de acciones buenas y malas.</p>
+      <div class="resume-box" id="resume-box" hidden>
+        <p>Tienes una partida guardada.</p>
+        <div class="start-actions">
+          <button class="btn" id="btn-resume">Continuar partida guardada</button>
+          <button class="btn ghost" id="btn-discard">Borrar partida guardada</button>
+        </div>
+      </div>
+      <div class="start-actions"><button class="btn" id="btn-start">Elegir dificultad y comenzar</button></div>
+      <p class="hint">Juego educativo. Se evalúa el efecto de cada decisión sobre el país, no una sola verdad histórica.</p>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-difficulty">
+    <p class="chapter">Antes de empezar</p>
+    <h1>Elige tu dificultad</h1>
+    <div class="card" style="margin-top:1.2rem">
+      <p>La dificultad decide si puedes consultar la línea de tiempo mientras juegas.</p>
+      <div class="diff-grid">
+        <button class="diff-card" data-diff="facil">
+          <strong>Fácil</strong>
+          <p>Puedes consultar la línea de tiempo cuando quieras, sin límite.</p>
+        </button>
+        <button class="diff-card" data-diff="medio">
+          <strong>Medio</strong>
+          <p>Solo 6 comodines para consultar la línea de tiempo en todo el juego.</p>
+        </button>
+        <button class="diff-card" data-diff="dificil">
+          <strong>Difícil</strong>
+          <p>No puedes consultar la línea de tiempo. Tienes 3 vidas.</p>
+        </button>
+      </div>
+      <div class="start-actions"><button class="btn ghost" id="btn-diff-back">Volver</button></div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-play">
+    <div class="playbar">
+      <button class="btn ghost" id="btn-pause">Pausar</button>
+      <div id="playbar-right"></div>
+    </div>
+    <p class="chapter" id="chapter">Capítulo</p>
+    <div class="card">
+      <span class="file-tab" id="file-tab">Año</span>
+      <h2 id="title">Título</h2>
+      <div class="scene-text" id="text"></div>
+      <div id="feedback"></div>
+      <p class="ask" id="ask-label" hidden>¿Qué hay que hacer?</p>
+      <div class="choices" id="choices"></div>
+    </div>
+  </section>
+
+  <div class="overlay" id="overlay-pause">
+    <div class="card">
+      <span class="file-tab">Pausa</span>
+      <h2>Juego en pausa</h2>
+      <p>Puedes guardar tu progreso y seguir después, o regresar a la partida.</p>
+      <div class="end-actions">
+        <button class="btn" id="btn-save">Guardar progreso</button>
+        <button class="btn ghost" id="btn-resume-play">Reanudar</button>
+        <button class="btn ghost" id="btn-save-exit">Guardar y salir al inicio</button>
+      </div>
+      <p class="saved-flash" id="saved-flash" hidden>Progreso guardado.</p>
+    </div>
+  </div>
+
+  <section class="screen" id="screen-end">
+    <p class="chapter" id="end-chapter">Desenlace</p>
+    <h1 id="end-title">Fin</h1>
+    <div class="card" style="margin-top:1rem">
+      <div id="end-text"></div>
+      <div class="log" id="end-log"></div>
+      <div class="end-actions">
+        <button class="btn" id="btn-again">Jugar otra ruta</button>
+        <a class="btn ghost" href="index.html">Volver al inicio</a>
+      </div>
+    </div>
+  </section>
+  <footer>Destinos de México · puntaje y juicio de acciones · uso escolar</footer>
+</div>
+<script>
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+const SAVE_KEY="destinosDeMexicoSave";
+const STATE={pts:0,est:55,jus:50,sob:55,ins:40,flags:{},log:[],scene:"s1",diff:"facil",comodines:6,vidas:3};
+const SCENES={
+s1:{chapter:"Mesoamérica prehispánica",year:"~1200 a.C.",title:"La cultura madre",
+text:"<p>En el Golfo florecen los olmecas: cabezas colosales, juego de pelota y primeras jerarquías. Ese modelo puede heredarse a Mixtecos, mayas y mexicas… o usarse solo para dominar.</p>",
+choices:[
+{label:"Compartir saberes: calendario, arte y organización",detail:"Sembrar una civilización común.",tipo:"buena",pts:18,next:"s2",apply:s=>{s.ins+=10;s.jus+=4;},flash:"El conocimiento se vuelve herencia de Mesoamérica."},
+{label:"Usar la grandeza solo para someter aldeas vecinas",detail:"Poder por miedo.",tipo:"mala",pts:-12,next:"s2",apply:s=>{s.est+=6;s.jus-=12;},flash:"El prestigio se convierte en yugo."},
+{label:"Cerrar los talleres y no enseñar a nadie",detail:"Guardar el secreto.",tipo:"mixta",pts:2,next:"s2",apply:s=>{s.ins-=8;s.est+=2;},flash:"Hay autonomía, pero se pierde el legado."}
+]},
+s2:{chapter:"Periodo Clásico",year:"~200–900",title:"Teotihuacán y los mayas",
+text:"<p>Surgen grandes ciudades. Teotihuacán organiza el centro; los mayas desarrollan escritura, el cero y astronomía. El poder pide monumentos cada vez mayores.</p>",
+choices:[
+{label:"Invertir en ciencia, escritura y comercio entre ciudades",detail:"Florecimiento compartido.",tipo:"buena",pts:20,next:"s3",apply:s=>{s.ins+=12;s.est+=6;},flash:"El Clásico se vuelve edad de saberes, no solo de templos."},
+{label:"Exigir más tributo para glorificar a los gobernantes",detail:"Pirámides a costa del pueblo.",tipo:"mala",pts:-14,next:"s3",apply:s=>{s.est+=4;s.jus-=14;},flash:"La ciudad brilla y el campo se agota."},
+{label:"Aislar cada ciudad y romper las rutas",detail:"Nadie depende de nadie.",tipo:"mixta",pts:0,next:"s3",apply:s=>{s.sob+=6;s.est-=10;s.ins-=6;},flash:"Hay independencia local y también fragmentación."}
+]},
+s3:{chapter:"Posclásico",year:"1325–1519",title:"Mixtecos y mexicas",
+text:"<p>Los mixtecos viven en señoríos y crean códices en piel de venado. Los mexicas fundan Tenochtitlan en 1325 y expanden un imperio con tributo y la Triple Alianza.</p>",
+choices:[
+{label:"Equilibrar alianzas y registrar la historia en códices",detail:"Red de pueblos, no solo conquista.",tipo:"buena",pts:16,next:"s4",apply:s=>{s.ins+=8;s.jus+=8;s.sob+=6;s.flags.alianzas=1;},flash:"El poder se sostiene con memoria y pactos."},
+{label:"Imponer tributo duro a todos los pueblos sometidos",detail:"El imperio primero.",tipo:"mala",pts:-12,next:"s4",apply:s=>{s.est+=10;s.jus-=14;s.flags.tributo=1;},flash:"Tenochtitlan crece… y se llena de enemigos."},
+{label:"Guerra constante solo por prestigio militar",detail:"Militarizar el Posclásico.",tipo:"mala",pts:-10,next:"s4",apply:s=>{s.sob+=4;s.est-=6;s.jus-=10;},flash:"El prestigio deja al Anáhuac dividido."}
+]},
+s4:{chapter:"La Conquista",year:"1519–1521",title:"Cortés en la costa",
+text:"<p>Cortés llega a Veracruz. Pueblos cansados del tributo, como los tlaxcaltecas, pueden aliarse con él. Tenochtitlan aún es poderosa. El 13 de agosto de 1521 puede cambiarlo todo.</p>",
+choices:[
+{label:"Buscar una gran alianza indígena para resistir unidos",detail:"Señoríos frente al invasor.",tipo:"buena",pts:18,next:"s5",apply:s=>{s.sob+=14;s.est+=4;},flash:"La soberanía se defiende en común."},
+{label:"Aliarse con Cortés para derribar a Tenochtitlan",detail:"Usar al extranjero contra el imperio.",tipo:"mixta",pts:4,next:"s5",apply:s=>{s.jus+=6;s.sob-=16;},flash:"Cae un yugo interno… y entra otro, más duradero."},
+{label:"Ignorar la amenaza y seguir las guerras de tributo",detail:"Como si nada hubiera cambiado.",tipo:"mala",pts:-16,next:"s5",apply:s=>{s.sob-=12;s.est-=10;},flash:"La división interna abre la puerta a la Conquista."}
+]},
+s5:{chapter:"Virreinato",year:"1521–1810",title:"Plata, castas y misiones",
+text:"<p>Nace la Nueva España. La economía se sostiene en la plata y las haciendas. Hay sociedad de castas y un mestizaje cultural profundo.</p>",
+choices:[
+{label:"Limitar abusos y reconocer pueblos indígenas",detail:"Orden colonial menos cruel.",tipo:"buena",pts:14,next:"s6",apply:s=>{s.jus+=12;s.est+=4;s.ins+=6;},flash:"La ley intenta frenar el despojo."},
+{label:"Explotar minas y encomiendas al máximo",detail:"Riqueza para la corona.",tipo:"mala",pts:-14,next:"s6",apply:s=>{s.est+=8;s.jus-=16;s.sob-=6;},flash:"La plata sale; el sufrimiento se queda."},
+{label:"Cerrar el paso a criollos e indígenas",detail:"Castas rígidas.",tipo:"mala",pts:-12,next:"s6",apply:s=>{s.ins-=6;s.jus-=10;},flash:"La desigualdad siembra el grito de 1810."}
+]},
+s6:{chapter:"Independencia",year:"1810–1821",title:"Del Grito al Plan de Iguala",
+text:"<p>Hidalgo lanza el Grito (16 sep 1810). Morelos escribe Sentimientos de la Nación. En 1821 Iturbide y Guerrero pactan las Tres Garantías: Religión, Independencia y Unión.</p>",
+choices:[
+{label:"Sostener un proyecto popular: igualdad y nación propia",detail:"La línea de Hidalgo y Morelos.",tipo:"buena",pts:20,next:"s7",apply:s=>{s.jus+=14;s.sob+=12;s.flags.morelos=1;},flash:"La independencia se piensa también como justicia."},
+{label:"Cerrar el Plan de Iguala y consumar en 1821",detail:"Unir criollos e insurgentes.",tipo:"buena",pts:16,next:"s7",apply:s=>{s.est+=10;s.sob+=10;s.ins+=6;s.flags.iguala=1;},flash:"Se consuma la Independencia y se evita una guerra eterna."},
+{label:"Dejar solo guerrillas sin plan político",detail:"Pelear sin construir país.",tipo:"mala",pts:-10,next:"s7",apply:s=>{s.est-=12;s.ins-=10;},flash:"Hay fuego, pero no nace un Estado."}
+]},
+s7:{chapter:"Caudillismo",year:"1821–1848",title:"Hombres fuertes y territorio",
+text:"<p>Sin instituciones firmes aparecen los caudillos. Santa Anna preside 11 veces. Se pierde Texas y estalla la guerra con Estados Unidos (1846–1848).</p>",
+choices:[
+{label:"Limitar a los caudillos y defender la constitución",detail:"La ley sobre el sable.",tipo:"buena",pts:16,next:"s8",apply:s=>{s.ins+=12;s.est-=4;},flash:"Se intenta que el país no dependa de un solo general."},
+{label:"Entregar todo a Santa Anna para salvar la patria",detail:"Un hombre, once presidencias.",tipo:"mala",pts:-12,next:"s8",apply:s=>{s.est+=6;s.ins-=14;s.sob-=6;},flash:"El orden personal sustituye al Estado."},
+{label:"Ceder el norte de inmediato para evitar la guerra",detail:"Paz a cambio de mapa.",tipo:"mala",pts:-18,next:"s8",apply:s=>{s.sob-=20;s.est+=8;},flash:"Se evita una batalla y se entrega el país por anticipado."}
+]},
+s8:{chapter:"Reforma e Intervención",year:"1857–1867",title:"Juárez y Maximiliano",
+text:"<p>Las Leyes de Reforma buscan un Estado laico. Viene la Guerra de Reforma y la Intervención Francesa. En 1867 se puede restaurar la República.</p>",
+choices:[
+{label:"Impulsar la Reforma y restaurar la República",detail:"Juárez y el Estado de derecho.",tipo:"buena",pts:22,next:"s9",apply:s=>{s.ins+=14;s.jus+=10;s.sob+=12;s.flags.juarez=1;},flash:"La República se restaura y la ley civil queda primero."},
+{label:"Aceptar a Maximiliano si promete modernizar",detail:"Imperio con tropas francesas.",tipo:"mala",pts:-16,next:"s9",apply:s=>{s.sob-=18;s.est+=6;},flash:"Hay palacio; la soberanía queda herida."},
+{label:"Pactar con clero y ejército para no pelear",detail:"Conservar privilegios.",tipo:"mixta",pts:2,next:"s9",apply:s=>{s.est+=8;s.jus-=10;s.ins-=6;},flash:"Hay tregua y se congela la igualdad civil."}
+]},
+s9:{chapter:"Porfiriato",year:"1876–1910",title:"Rieles y desigualdad",
+text:"<p>Díaz llega con el Plan de Tuxtepec. Hay más de 20,000 km de vías e inversión extranjera. También despojo de tierras y huelgas de Cananea y Río Blanco.</p>",
+choices:[
+{label:"Modernizar protegiendo tierras y derechos laborales",detail:"Progreso con freno social.",tipo:"buena",pts:16,next:"s10",apply:s=>{s.jus+=12;s.est+=6;s.ins+=6;},flash:"Hay vías y fábricas sin vaciar del todo al campo."},
+{label:"Paz porfiriana a cualquier costo",detail:"Mano dura e inversión.",tipo:"mala",pts:-12,next:"s10",apply:s=>{s.est+=12;s.jus-=16;s.sob-=6;s.flags.porfDuro=1;},flash:"El país se moderniza sobre el despojo."},
+{label:"Cerrar el país a toda inversión extranjera",detail:"Soberanía sin rieles.",tipo:"mixta",pts:2,next:"s10",apply:s=>{s.sob+=8;s.est-=12;},flash:"Se evita la dependencia y también el crecimiento."}
+]},
+s10:{chapter:"Revolución Mexicana",year:"1910–1917",title:"De Madero a Querétaro",
+text:"<p>El 20 de noviembre de 1910 empieza el levantamiento. La Decena Trágica tumba a Madero. En 1917 se puede escribir una Constitución con derechos sociales.</p>",
+choices:[
+{label:"Promulgar los artículos 3°, 27° y 123°",detail:"Educación, tierra y trabajo.",tipo:"buena",pts:24,next:"s11",apply:s=>{s.jus+=16;s.ins+=14;s.flags.const1917=1;},flash:"Nace una Constitución pionera en derechos sociales."},
+{label:"Apoyar el golpe de Huerta para acabar el desorden",detail:"Paz de cuartel.",tipo:"mala",pts:-18,next:"s11",apply:s=>{s.est+=6;s.jus-=16;s.ins-=14;},flash:"El golpe sustituye a la legalidad."},
+{label:"Seguir la guerra de facciones sin constitución",detail:"Cada caudillo con su ejército.",tipo:"mala",pts:-10,next:"s11",apply:s=>{s.est-=12;s.ins-=10;s.jus+=4;},flash:"La causa popular se queda sin Estado."}
+]},
+s11:{chapter:"Calles y el Maximato",year:"1924–1934",title:"Cristeros y el PNR",
+text:"<p>Estalla la Guerra Cristera (1926–1929). Obregón muere en 1928. Calles gobierna como Jefe Máximo y funda el PNR para heredar el poder sin guerra.</p>",
+choices:[
+{label:"Pactar la paz religiosa y crear instituciones de sucesión",detail:"Acuerdo de 1929 + PNR.",tipo:"buena",pts:18,next:"s12",apply:s=>{s.est+=10;s.ins+=12;s.flags.pnr=1;},flash:"Se apaga la guerra y el poder empieza a pasar por reglas."},
+{label:"Leyes duras y mando personal del Jefe Máximo",detail:"Estado duro.",tipo:"mala",pts:-14,next:"s12",apply:s=>{s.ins+=2;s.est-=12;s.jus-=8;},flash:"El conflicto se alarga y el caudillo solo cambia de nombre."},
+{label:"Dejar que los generales se peleen la silla",detail:"Regreso al siglo XIX.",tipo:"mala",pts:-16,next:"s12",apply:s=>{s.est-=16;s.ins-=14;},flash:"El país de instituciones no nace."}
+]},
+s12:{chapter:"Cardenismo",year:"1934–1940",title:"Tierra y petróleo",
+text:"<p>Cárdenas puede romper con Calles, repartir ejidos y, el 18 de marzo de 1938, expropiar el petróleo.</p>",
+choices:[
+{label:"Expulsar a Calles, repartir tierra y expropiar el petróleo",detail:"Fin del Maximato.",tipo:"buena",pts:22,next:"s13",apply:s=>{s.ins+=10;s.jus+=12;s.sob+=16;s.flags.cardenas=1;},flash:"Manda el cargo, no el tutor. El subsuelo vuelve a la Nación."},
+{label:"Quedarse como títere y no tocar a las compañías",detail:"Calma con las élites.",tipo:"mala",pts:-16,next:"s13",apply:s=>{s.est+=6;s.ins-=12;s.sob-=12;s.jus-=6;},flash:"Hay calma y no hay presidencia ni soberanía."},
+{label:"Reforma agraria, pero petróleo en manos extranjeras",detail:"Tierra sí, subsuelo no.",tipo:"mixta",pts:6,next:"s13",apply:s=>{s.jus+=8;s.sob-=8;},flash:"El campo avanza; la riqueza del subsuelo no."}
+]},
+s13:{chapter:"México contemporáneo",year:"1940–1968",title:"Milagro y 1968",
+text:"<p>El Milagro Mexicano trae industria. El partido hegemónico cierra el debate. En 1968 el movimiento estudiantil pide apertura. El 2 de octubre, en Tlatelolco, el Estado responde con violencia.</p>",
+choices:[
+{label:"Abrir la política y escuchar al movimiento estudiantil",detail:"Crecimiento con libertades.",tipo:"buena",pts:18,next:"s14",apply:s=>{s.jus+=12;s.ins+=8;s.est+=4;s.flags.apertura=1;},flash:"El milagro económico no se paga con silencio."},
+{label:"Industrializar y callar la protesta",detail:"Orden para el milagro.",tipo:"mala",pts:-16,next:"s14",apply:s=>{s.est+=8;s.jus-=16;s.ins-=8;s.flags.tlatelolco=1;},flash:"Hay fábricas y se rompe la confianza social."},
+{label:"Repartir crecimiento, dejar intacto el partido único",detail:"Pan sin voto pleno.",tipo:"mixta",pts:4,next:"s14",apply:s=>{s.est+=6;s.jus-=4;s.ins-=4;},flash:"Hay empleo y sigue faltando democracia."}
+]},
+s14:{chapter:"Final del siglo XX",year:"1982–2000",title:"TLCAN, Chiapas y alternancia",
+text:"<p>Llegan crisis, el TLCAN (1994) y el alzamiento del EZLN en Chiapas. En 2000 puede terminar la hegemonía de más de 70 años del PRI.</p>",
+choices:[
+{label:"Abrir economía y democracia: reconocer pluralidad y alternancia",detail:"Comercio + voto.",tipo:"buena",pts:20,next:"ending",apply:s=>{s.ins+=12;s.jus+=8;s.est+=6;s.flags.alternancia=1;},flash:"El país cambia de partido sin cambiar de régimen por las armas."},
+{label:"Firmar el TLCAN e ignorar a los pueblos de Chiapas",detail:"Mercado sin campo.",tipo:"mala",pts:-12,next:"ending",apply:s=>{s.est+=4;s.jus-=12;s.sob-=4;},flash:"La apertura deja fuera a quien ya estaba fuera."},
+{label:"Cerrar fronteras y bloquear el cambio de partido",detail:"Aislarse para no perder control.",tipo:"mala",pts:-14,next:"ending",apply:s=>{s.sob+=4;s.ins-=12;s.est-=8;s.jus-=6;},flash:"Se defiende un control viejo y se frena al país."}
+]}
+};
+function colorFor(v){if(v<30)return"var(--oxblood)";if(v<55)return"var(--gold)";return"var(--bottle)";}
+function renderHUD(){
+[["est","b-est","v-est"],["jus","b-jus","v-jus"],["sob","b-sob","v-sob"],["ins","b-ins","v-ins"]].forEach(([k,b,v])=>{
+STATE[k]=clamp(STATE[k],0,100);
+const bar=document.getElementById(b);
+bar.style.width=STATE[k]+"%";bar.style.background=colorFor(STATE[k]);
+document.getElementById(v).textContent=STATE[k];
+});
+document.getElementById("v-pts").textContent=STATE.pts;
+}
+function rank(){
+if(STATE.pts>=180)return"Maestra o maestro de la Nación";
+if(STATE.pts>=120)return"Estadista responsable";
+if(STATE.pts>=70)return"Gobernante irregular";
+if(STATE.pts>=20)return"Caudillo con saldo mixto";
+return"Expediente adverso";
+}
+function showEnd(kind,title,html){
+document.getElementById("hud").hidden=false;renderHUD();
+document.getElementById("screen-play").classList.remove("on");
+document.getElementById("screen-start").classList.remove("on");
+document.getElementById("screen-end").classList.add("on");
+document.getElementById("end-chapter").textContent=kind;
+document.getElementById("end-title").textContent=title;
+const buenas=STATE.log.filter(x=>x.tipo==="buena");
+const malas=STATE.log.filter(x=>x.tipo==="mala");
+const mixtas=STATE.log.filter(x=>x.tipo==="mixta");
+const li=arr=>arr.map(x=>`<li><span class="badge ${x.tipo}">${x.tipo}</span> ${x.year}: ${x.label} (${x.pts>=0?"+":""}${x.pts})</li>`).join("")||"<li>Ninguna</li>";
+document.getElementById("end-text").innerHTML=html+
+`<p><strong>Puntaje final:</strong> ${STATE.pts} puntos · <em>${rank()}</em></p>
+<p>Estabilidad ${STATE.est} · Justicia ${STATE.jus} · Soberanía ${STATE.sob} · Instituciones ${STATE.ins}</p>
+<p>Buenas: ${buenas.length} · mixtas: ${mixtas.length} · malas: ${malas.length}</p>`;
+document.getElementById("end-log").innerHTML=
+`<div class="cols"><div><h3>Acciones buenas</h3><ul>${li(buenas)}</ul></div>
+<div><h3>Acciones malas</h3><ul>${li(malas)}</ul></div></div>
+<h3>Acciones mixtas</h3><ul>${li(mixtas)}</ul>`;
+}
+function endingFromState(){
+if(STATE.est<=0)return showEnd("Derrota","El país se deshace","<p>La estabilidad llegó a 0. El expediente se cierra.</p>");
+if(STATE.jus<=0)return showEnd("Derrota","La injusticia estalla","<p>Se gobernó de espaldas al pueblo.</p>");
+if(STATE.sob<=0)return showEnd("Derrota","Soberanía perdida","<p>El territorio o los recursos quedaron bajo tutela ajena.</p>");
+if(STATE.ins<=0)return showEnd("Derrota","Sin instituciones","<p>Solo quedaron hombres fuertes.</p>");
+if(STATE.pts>=160&&STATE.flags.const1917&&STATE.flags.alternancia)
+return showEnd("Victoria","De los códices a la alternancia","<p>Recorriste México desde Mesoamérica hasta el 2000 cuidando justicia, soberanía e instituciones.</p>");
+if(STATE.pts>=110)return showEnd("Victoria parcial","Un país en pie","<p>Llegaste al presente con más aciertos que errores.</p>");
+if(STATE.pts>=50)return showEnd("Final mixto","México a medias","<p>Hubo luces y sombras. Revisa tus acciones y prueba otra ruta.</p>");
+return showEnd("Final adverso","El saldo no alcanza","<p>El expediente quedó pobre. Mira la lista de acciones malas.</p>");
+}
+function go(id){
+if(id==="ending"){endingFromState();return;}
+const sc=SCENES[id];STATE.scene=id;
+document.getElementById("screen-start").classList.remove("on");
+document.getElementById("screen-end").classList.remove("on");
+document.getElementById("screen-play").classList.add("on");
+document.getElementById("hud").hidden=false;renderHUD();
+document.getElementById("chapter").textContent=sc.chapter;
+document.getElementById("file-tab").textContent=sc.year;
+document.getElementById("title").textContent=sc.title;
+document.getElementById("text").innerHTML=sc.text;
+document.getElementById("feedback").innerHTML="";
+renderPlaybar();
+document.getElementById("ask-label").hidden=false;
+const box=document.getElementById("choices");box.innerHTML="";
+sc.choices.forEach(c=>{
+const b=document.createElement("button");b.className="choice";
+b.innerHTML=`<strong>${c.label}</strong>`;
+b.onclick=()=>choose(c);box.appendChild(b);
+});
+}
+function renderPlaybar(){
+const right=document.getElementById("playbar-right");
+if(STATE.diff==="facil"){
+right.innerHTML=`<a class="btn ghost" href="linea-tiempo.html" target="_blank" rel="noopener">Consultar línea de tiempo</a>`;
+}else if(STATE.diff==="medio"){
+right.innerHTML=`<button class="btn ghost" id="btn-comodin">Consultar (comodín: ${STATE.comodines})</button>`;
+const cb=document.getElementById("btn-comodin");
+if(STATE.comodines<=0){cb.disabled=true;cb.style.opacity=.45;}
+cb.onclick=()=>{
+if(STATE.comodines<=0)return;
+STATE.comodines-=1;
+renderPlaybar();
+window.open("linea-tiempo.html","_blank","noopener");
+};
+}else{
+let hearts="";
+for(let i=0;i<3;i++){hearts+=i<STATE.vidas?"♥":`<span class="lost">♥</span>`;}
+right.innerHTML=`<span class="lives">${hearts}</span>`;
+}
+}
+function choose(c){
+c.apply(STATE);STATE.pts+=c.pts;
+STATE.log.push({tipo:c.tipo,year:SCENES[STATE.scene].year,label:c.label,pts:c.pts});
+renderHUD();
+document.getElementById("feedback").innerHTML=`<div class="flash ${c.tipo}"><span class="badge ${c.tipo}">${c.tipo}</span> ${c.pts>=0?"+"+c.pts:c.pts} puntos. ${c.flash}</div>`;
+document.getElementById("ask-label").hidden=true;
+const box=document.getElementById("choices");box.innerHTML="";
+const cont=document.createElement("button");cont.className="choice";
+cont.innerHTML="<strong>Continuar</strong>Pasar a la siguiente época";
+cont.onclick=()=>{advance(c.next);};
+box.appendChild(cont);
+}
+function advance(nextId){
+const derrotado=STATE.est<=0||STATE.jus<=0||STATE.sob<=0||STATE.ins<=0;
+if(!derrotado){go(nextId);return;}
+if(STATE.diff==="dificil"&&STATE.vidas>0){
+STATE.vidas-=1;
+if(STATE.est<=0)STATE.est=20;
+if(STATE.jus<=0)STATE.jus=20;
+if(STATE.sob<=0)STATE.sob=20;
+if(STATE.ins<=0)STATE.ins=20;
+renderHUD();
+document.getElementById("feedback").innerHTML+=`<div class="flash mala">Perdiste una vida. Te quedan ${STATE.vidas}. Una época se recupera a tiempo.</div>`;
+const box=document.getElementById("choices");box.innerHTML="";
+const cont2=document.createElement("button");cont2.className="choice";
+cont2.innerHTML="<strong>Seguir adelante</strong>";
+cont2.onclick=()=>go(nextId);
+box.appendChild(cont2);
+return;
+}
+endingFromState();
+}
+function reset(){
+STATE.pts=0;STATE.est=55;STATE.jus=50;STATE.sob=55;STATE.ins=40;STATE.flags={};STATE.log=[];
+STATE.comodines=6;STATE.vidas=3;
+document.getElementById("screen-end").classList.remove("on");
+document.getElementById("screen-play").classList.remove("on");
+document.getElementById("screen-difficulty").classList.remove("on");
+document.getElementById("screen-start").classList.add("on");
+document.getElementById("hud").hidden=true;
+checkSavedGame();
+}
+function startWithDifficulty(diff){
+reset();
+STATE.diff=diff;
+document.getElementById("screen-difficulty").classList.remove("on");
+go("s1");
+}
+function checkSavedGame(){
+const box=document.getElementById("resume-box");
+box.hidden=!localStorage.getItem(SAVE_KEY);
+}
+function saveGame(){
+try{
+localStorage.setItem(SAVE_KEY,JSON.stringify(STATE));
+return true;
+}catch(e){return false;}
+}
+function loadGame(){
+const raw=localStorage.getItem(SAVE_KEY);
+if(!raw)return false;
+try{
+const data=JSON.parse(raw);
+Object.assign(STATE,data);
+return true;
+}catch(e){return false;}
+}
+document.getElementById("btn-start").onclick=()=>{
+document.getElementById("screen-start").classList.remove("on");
+document.getElementById("screen-difficulty").classList.add("on");
+};
+document.getElementById("btn-diff-back").onclick=()=>{
+document.getElementById("screen-difficulty").classList.remove("on");
+document.getElementById("screen-start").classList.add("on");
+};
+document.querySelectorAll(".diff-card").forEach(btn=>{
+btn.onclick=()=>startWithDifficulty(btn.dataset.diff);
+});
+document.getElementById("btn-again").onclick=()=>{reset();};
+document.getElementById("btn-resume").onclick=()=>{
+if(loadGame()){
+document.getElementById("screen-start").classList.remove("on");
+go(STATE.scene);
+}
+};
+document.getElementById("btn-discard").onclick=()=>{
+localStorage.removeItem(SAVE_KEY);
+checkSavedGame();
+};
+document.getElementById("btn-pause").onclick=()=>{
+document.getElementById("saved-flash").hidden=true;
+document.getElementById("overlay-pause").classList.add("on");
+};
+document.getElementById("btn-resume-play").onclick=()=>{
+document.getElementById("overlay-pause").classList.remove("on");
+};
+document.getElementById("btn-save").onclick=()=>{
+const ok=saveGame();
+const f=document.getElementById("saved-flash");
+f.textContent=ok?"Progreso guardado.":"No se pudo guardar.";
+f.hidden=false;
+};
+document.getElementById("btn-save-exit").onclick=()=>{
+saveGame();
+document.getElementById("overlay-pause").classList.remove("on");
+document.getElementById("screen-play").classList.remove("on");
+document.getElementById("screen-start").classList.add("on");
+document.getElementById("hud").hidden=true;
+checkSavedGame();
+};
+checkSavedGame();
+</script>
+</body>
+</html>
