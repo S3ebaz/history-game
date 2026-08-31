@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ecos de México · De los primeros pobladores a la actualidad</title>
+<meta name="description" content="Línea de tiempo interactiva de la Historia de México: desde los primeros pobladores nómadas hasta el México contemporáneo.">
+<style>
+:root{
+  --paper:#E9E1CB;--paper-deep:#DED2AF;--paper-card:#F2ECD9;
+  --ink:#2A241E;--ink-soft:#5C5142;--rule:rgba(42,36,30,.22);
+  --oxblood:#7A2226;--oxblood-bg:#F1DEDC;
+  --brass:#6B4E14;--brass-bg:#F1E6C9;
+  --bottle:#24402A;--bottle-bg:#DCE7DE;
+  --indigo:#263759;--indigo-bg:#DEE3EE;
+  --terracotta:#8B4513;--terracotta-bg:#F5E6D3;
+  --gold:#8B6914;--gold-bg:#F5F0D8;
+  --slate:#3A4A5C;--slate-bg:#E4E9EF;
+  --umber:#5A4632;--umber-bg:#EBE0CB;
+  --font-display:Georgia,'Times New Roman',serif;
+  --font-body:Georgia,'Times New Roman',serif;
+  --font-mono:'Courier New',Courier,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-body);line-height:1.65;
+  background-image:
+    radial-gradient(ellipse at 12% -10%, rgba(255,255,255,.5), transparent 45%),
+    radial-gradient(ellipse at 100% 0%, rgba(0,0,0,.05), transparent 40%);
+}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+button{font-family:inherit;cursor:pointer}
+.masthead{max-width:960px;margin:0 auto;padding:3rem 1.4rem 1.6rem}
+.eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 .9rem}
+.eyebrow::before{content:'§ '}
+h1{font-family:var(--font-display);font-weight:800;font-size:3.1rem;line-height:1.05;margin:0}
+h1 em{display:block;font-family:var(--font-body);font-style:italic;font-weight:500;font-size:.4em;color:var(--oxblood);margin-top:.3em}
+.dek{font-size:1.05rem;color:var(--ink-soft);max-width:58ch;margin:1rem 0 0}
+.rule{border:none;border-top:1px solid var(--rule);margin:1.4rem 0}
+.legend{display:flex;flex-wrap:wrap;gap:.45rem}
+.chip{display:inline-flex;align-items:center;gap:7px;background:transparent;border:1px solid var(--rule);border-radius:999px;padding:6px 12px;font-family:var(--font-mono);font-size:11px;color:var(--ink-soft)}
+.chip .dot{width:8px;height:8px;border-radius:50%;background:var(--ink-soft)}
+.chip[data-filter="nomada"] .dot{background:var(--umber)}
+.chip[data-filter="prehispanica"] .dot{background:var(--terracotta)}
+.chip[data-filter="virreinato"] .dot{background:var(--brass)}
+.chip[data-filter="independencia"] .dot{background:var(--oxblood)}
+.chip[data-filter="caudillismo"] .dot{background:var(--gold)}
+.chip[data-filter="porfiriato"] .dot{background:var(--slate)}
+.chip[data-filter="revolucion"] .dot{background:var(--bottle)}
+.chip[data-filter="postrev"] .dot{background:var(--indigo)}
+.chip[data-filter="contemporaneo"] .dot{background:#4A6741}
+.chip.active{color:var(--ink);border-color:var(--ink);background:var(--paper-card)}
+.timeline-wrap{background:var(--paper-deep);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.timeline-scroll{overflow-x:auto}
+.timeline-track{position:relative;display:flex;align-items:flex-start;gap:34px;padding:34px 36px 26px;min-width:max-content}
+.track-line{position:absolute;left:0;right:0;top:86px;height:2px;background:var(--ink-soft);opacity:.5}
+.marker{position:relative;display:flex;flex-direction:column;align-items:center;width:90px;flex:0 0 auto;background:none;border:none;padding:0;z-index:1}
+.marker-year{font-family:var(--font-mono);font-size:11px;color:var(--ink-soft);margin-bottom:8px;white-space:nowrap;text-align:center}
+.seal{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--paper-card);border:2px solid currentColor;box-shadow:0 0 0 3px var(--paper-deep),0 0 0 5px currentColor}
+.seal-icon{width:24px;height:24px}
+.seal-icon *{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.c-nomada{color:var(--umber)}
+.c-prehispanica{color:var(--terracotta)}.c-virreinato{color:var(--brass)}.c-independencia{color:var(--oxblood)}
+.c-caudillismo{color:var(--gold)}.c-porfiriato{color:var(--slate)}.c-revolucion{color:var(--bottle)}
+.c-postrev{color:var(--indigo)}.c-contemporaneo{color:#4A6741}
+.marker:hover .seal{transform:translateY(-3px) scale(1.05)}
+.marker.active .seal{background:currentColor}
+.marker.active .seal-icon{color:var(--paper-card)}
+.marker.active .marker-year{color:var(--ink);font-weight:700}
+.marker.active::after{content:'';position:absolute;bottom:-11px;left:50%;width:8px;height:8px;background:currentColor;transform:translateX(-50%) rotate(45deg)}
+.marker.dimmed{opacity:.28;filter:grayscale(.6)}
+.dossier-section{max-width:960px;margin:0 auto;padding:2.2rem 1.4rem 3rem}
+.dossier-card{position:relative;background:var(--paper-card);border:1px solid var(--rule);border-radius:4px;padding:1.8rem 1.8rem 1.6rem}
+.file-tab{position:absolute;top:-12px;right:20px;background:var(--ink);color:var(--paper-card);font-family:var(--font-mono);font-size:11px;padding:4px 10px;border-radius:2px}
+.dossier-head{display:flex;align-items:center;gap:16px;margin-bottom:1.1rem}
+.seal.big{width:66px;height:66px;flex:0 0 auto}
+.d-eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;margin:0 0 .3rem;color:var(--ink-soft)}
+.dossier-head h2{font-family:var(--font-display);font-size:1.5rem;margin:0;line-height:1.2}
+.d-body{font-size:1.02rem;max-width:68ch}
+.d-body p{margin:0 0 .8rem}
+.d-body ul{margin:.3rem 0 1rem;padding-left:1.2rem}
+.d-facts{list-style:none;margin:0 0 1.2rem;padding:0;display:flex;flex-wrap:wrap;gap:7px}
+.d-facts li{font-family:var(--font-mono);font-size:11.5px;padding:5px 10px;border-radius:3px}
+.images-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.img-card{background:var(--paper);border:1px solid var(--rule);border-radius:3px;overflow:hidden}
+.img-card .swatch{width:100%;height:120px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:2rem;color:rgba(255,255,255,.85)}
+.img-card figcaption{font-family:var(--font-mono);font-size:10.5px;padding:7px 8px;color:var(--ink-soft)}
+.note{font-size:.9rem;color:var(--ink-soft);font-style:italic;margin-top:1rem;border-top:1px solid var(--rule);padding-top:.8rem}
+footer{text-align:center;padding:0 1rem 2.4rem;font-family:var(--font-mono);font-size:11px;color:var(--ink-soft)}
+@media(max-width:640px){h1{font-size:2.1rem}.dossier-head{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+<symbol id="icon-footprint" viewBox="0 0 40 40"><ellipse cx="15" cy="14" rx="4" ry="6"/><ellipse cx="15" cy="27" rx="5" ry="8"/><ellipse cx="27" cy="10" rx="3.5" ry="5"/><ellipse cx="27" cy="24" rx="4.5" ry="7"/></symbol>
+<symbol id="icon-pyramid" viewBox="0 0 40 40"><path d="M6 32h28L20 8z"/><line x1="14" y1="24" x2="26" y2="24"/><line x1="17" y1="18" x2="23" y2="18"/></symbol>
+<symbol id="icon-crown" viewBox="0 0 40 40"><path d="M8 28h24v4H8z"/><path d="M10 28l4-12 6 7 6-7 4 12"/></symbol>
+<symbol id="icon-torch" viewBox="0 0 40 40"><line x1="20" y1="14" x2="20" y2="32"/><path d="M14 14c0-5 3-8 6-8s6 3 6 8c-2 2-4 3-6 3s-4-1-6-3z"/></symbol>
+<symbol id="icon-sword" viewBox="0 0 40 40"><line x1="12" y1="28" x2="28" y2="12"/><path d="M26 10l4 4M10 26l4 4"/></symbol>
+<symbol id="icon-train" viewBox="0 0 40 40"><rect x="8" y="16" width="24" height="12" rx="2"/><circle cx="14" cy="30" r="3"/><circle cx="26" cy="30" r="3"/></symbol>
+<symbol id="icon-star" viewBox="0 0 40 40"><path d="M20 8l3 9h9l-7 5 3 9-8-6-8 6 3-9-7-5h9z"/></symbol>
+<symbol id="icon-building" viewBox="0 0 40 40"><path d="M8 32V14l12-6 12 6v18"/><line x1="8" y1="32" x2="32" y2="32"/></symbol>
+<symbol id="icon-modern" viewBox="0 0 40 40"><rect x="10" y="12" width="8" height="20"/><rect x="22" y="8" width="8" height="24"/></symbol>
+</defs>
+</svg>
+
+<header class="masthead">
+  <p class="eyebrow">Expediente histórico · México</p>
+  <h1>De los primeros pobladores a la actualidad<em>línea de tiempo interactiva</em></h1>
+  <p class="dek">Toca un sello para abrir el expediente de cada época: desde los primeros pobladores nómadas hasta el México de hoy.</p>
+  <hr class="rule">
+  <div class="legend" role="group" aria-label="Filtrar">
+    <button class="chip active" data-filter="all"><span class="dot"></span>Todo</button>
+    <button class="chip" data-filter="nomada"><span class="dot"></span>Primeros pobladores</button>
+    <button class="chip" data-filter="prehispanica"><span class="dot"></span>Mesoamérica</button>
+    <button class="chip" data-filter="virreinato"><span class="dot"></span>Virreinato</button>
+    <button class="chip" data-filter="independencia"><span class="dot"></span>Independencia</button>
+    <button class="chip" data-filter="caudillismo"><span class="dot"></span>Caudillismo</button>
+    <button class="chip" data-filter="porfiriato"><span class="dot"></span>Porfiriato</button>
+    <button class="chip" data-filter="revolucion"><span class="dot"></span>Revolución</button>
+    <button class="chip" data-filter="postrev"><span class="dot"></span>Postrevolución</button>
+    <button class="chip" data-filter="contemporaneo"><span class="dot"></span>Actualidad</button>
+  </div>
+</header>
+
+<section class="timeline-wrap">
+  <div class="timeline-scroll">
+    <div class="timeline-track">
+      <div class="track-line"></div>
+      <button class="marker" data-id="0" data-cat="nomada"><span class="marker-year">~30,000 a.C.</span><span class="seal c-nomada"><svg class="seal-icon"><use href="#icon-footprint"/></svg></span><span class="sr-only">Primeros pobladores</span></button>
+      <button class="marker" data-id="1" data-cat="prehispanica"><span class="marker-year">~2500 a.C.</span><span class="seal c-prehispanica"><svg class="seal-icon"><use href="#icon-pyramid"/></svg></span><span class="sr-only">Mesoamérica</span></button>
+      <button class="marker" data-id="2" data-cat="virreinato"><span class="marker-year">1521</span><span class="seal c-virreinato"><svg class="seal-icon"><use href="#icon-crown"/></svg></span><span class="sr-only">Virreinato</span></button>
+      <button class="marker" data-id="3" data-cat="independencia"><span class="marker-year">1810</span><span class="seal c-independencia"><svg class="seal-icon"><use href="#icon-torch"/></svg></span><span class="sr-only">Independencia</span></button>
+      <button class="marker" data-id="4" data-cat="caudillismo"><span class="marker-year">1821</span><span class="seal c-caudillismo"><svg class="seal-icon"><use href="#icon-sword"/></svg></span><span class="sr-only">Caudillismo</span></button>
+      <button class="marker" data-id="5" data-cat="porfiriato"><span class="marker-year">1876</span><span class="seal c-porfiriato"><svg class="seal-icon"><use href="#icon-train"/></svg></span><span class="sr-only">Porfiriato</span></button>
+      <button class="marker" data-id="6" data-cat="revolucion"><span class="marker-year">1910</span><span class="seal c-revolucion"><svg class="seal-icon"><use href="#icon-star"/></svg></span><span class="sr-only">Revolución</span></button>
+      <button class="marker" data-id="7" data-cat="postrev"><span class="marker-year">1920</span><span class="seal c-postrev"><svg class="seal-icon"><use href="#icon-building"/></svg></span><span class="sr-only">Postrevolución</span></button>
+      <button class="marker" data-id="8" data-cat="contemporaneo"><span class="marker-year">1940</span><span class="seal c-contemporaneo"><svg class="seal-icon"><use href="#icon-modern"/></svg></span><span class="sr-only">Actualidad</span></button>
+    </div>
+  </div>
+</section>
+
+<section class="dossier-section">
+  <article class="dossier-card" id="dossier">
+    <span class="file-tab">Expediente n.º <span id="d-num">00</span></span>
+    <div class="dossier-head">
+      <span class="seal big c-nomada" id="d-seal"><svg class="seal-icon"><use id="d-icon-use" href="#icon-footprint"/></svg></span>
+      <div>
+        <p class="d-eyebrow"><span id="d-date">~30,000 – 2500 a.C.</span> · <span id="d-cat">Primeros pobladores</span></p>
+        <h2 id="d-title">Nómadas y primeros pobladores</h2>
+      </div>
+    </div>
+    <div class="d-body" id="d-body"></div>
+    <ul class="d-facts" id="d-facts"></ul>
+    <div class="images-grid" id="d-images"></div>
+    <p class="note" id="d-note"></p>
+  </article>
+</section>
+<footer>Ecos de México · de Mesoamérica a la actualidad · uso escolar</footer>
+<script>
+const DATA={
+0:{cat:"nomada",catLabel:"Primeros pobladores",date:"~30,000 – 2500 a.C.",title:"Nómadas y primeros pobladores",icon:"icon-footprint",
+body:`<p>Los primeros seres humanos llegaron al continente americano hace miles de años, probablemente cruzando el estrecho de Bering desde Asia durante la última glaciación, cuando el nivel del mar era mucho más bajo. Con el tiempo se fueron extendiendo hacia el sur.</p>
+<ul>
+<li><strong>Paleoindio (~30,000–7000 a.C.):</strong> bandas nómadas de cazadores-recolectores siguen manadas de mamuts y otra megafauna. Restos humanos muy antiguos aparecen en sitios como Tlapacoya, cerca del lago de Chalco, y en la Cueva de Chiquihuite (Zacatecas).</li>
+<li><strong>Arcaico (~7000–2500 a.C.):</strong> el clima cambia, la megafauna se extingue y los grupos nómadas empiezan a recolectar semillas silvestres. En la Cueva de Coxcatlán (Puebla) y en Guilá Naquitz (Oaxaca) aparecen los restos más antiguos del maíz domesticado, junto con calabaza y frijol.</li>
+<li><strong>Hacia el sedentarismo (~2500 a.C.):</strong> la agricultura permite que algunos grupos dejen de moverse todo el año y formen las primeras aldeas permanentes, la base sobre la que crecerán las civilizaciones mesoamericanas.</li>
+</ul>
+<p>No hay una fecha exacta de \"colonización\": es un proceso lento de generaciones que caminan, cazan, recolectan y, poco a poco, empiezan a sembrar.</p>`,
+facts:["Cruce por Bering","Tlapacoya y Chiquihuite","Domesticación del maíz","De nómadas a sedentarios"],
+images:[
+{src:"",cap:"Cazadores del Paleoindio"},
+{src:"",cap:"Domesticación del maíz"},
+{src:"",cap:"Primeras aldeas"}
+],
+note:"El maíz domesticado en Coxcatlán y Guilá Naquitz hará posible, siglos después, a las civilizaciones mesoamericanas."},
+1:{cat:"prehispanica",catLabel:"Mesoamérica",date:"~2500 a.C. – 1521",title:"Culturas prehispánicas",icon:"icon-pyramid",
+body:`<p>En Mesoamérica se desarrollaron sociedades complejas en tres grandes periodos:</p>
+<ul>
+<li><strong>Preclásico (~2500 a.C. – 200 d.C.):</strong> Cultura olmeca (“cultura madre”) en el Golfo (La Venta, Tres Zapotes). Jerarquías, juego de pelota y cabezas colosales.</li>
+<li><strong>Clásico (~200 – 900 d.C.):</strong> Teotihuacán en el centro y los mayas en el sureste (escritura, el cero y astronomía).</li>
+<li><strong>Posclásico (~900 – 1521):</strong> Mixtecos (Ñuu Savi) en señoríos de Oaxaca/Puebla/Guerrero: orfebrería y códices en piel de venado (Zouche-Nuttall). Mexicas fundan Tenochtitlan en 1325 y crean un imperio con la Triple Alianza.</li>
+</ul>
+<p>Sitios: Monte Albán (Tumba 7), Mitla y Yagul.</p>`,
+facts:["Olmecas = cultura madre","Teotihuacán y mayas","Mixtecos y mexicas","Tenochtitlan 1325"],
+images:[
+{cap:"Cabeza colosal olmeca"},
+{cap:"Pirámide del Sol, Teotihuacán"},
+{cap:"Códice mixteco"}
+],
+note:"Los mixtecos destacaron como orfebres y por sus códices genealógicos."},
+2:{cat:"virreinato",catLabel:"Conquista y Virreinato",date:"1521 – 1810",title:"Nueva España",icon:"icon-crown",
+body:`<p><strong>Conquista (1519–1521):</strong> Cortés desembarca en Veracruz, se alía con pueblos como los tlaxcaltecas y toma Tenochtitlan el 13 de agosto de 1521.</p>
+<ul>
+<li><strong>Economía:</strong> plata (Zacatecas, Guanajuato) y haciendas/encomiendas.</li>
+<li><strong>Sociedad de castas:</strong> peninsulares, criollos, mestizos, indígenas y africanos.</li>
+<li><strong>Sincretismo:</strong> evangelización franciscana y dominica; nace el México mestizo.</li>
+</ul>`,
+facts:["13 ago 1521","Virreinato","Minería de plata","Sociedad de castas"],
+images:[
+{cap:"La Conquista"},
+{cap:"Ciudad de México colonial"}
+],
+note:"El orden colonial duró casi 300 años."},
+3:{cat:"independencia",catLabel:"Independencia",date:"1810 – 1821",title:"Guerra de Independencia",icon:"icon-torch",
+body:`<ul>
+<li><strong>Iniciación (1810–1811):</strong> Grito de Dolores, 16 de septiembre de 1810, por Miguel Hidalgo.</li>
+<li><strong>Organización (1811–1815):</strong> Morelos: Sentimientos de la Nación (1813) y Constitución de Apatzingán (1814).</li>
+<li><strong>Resistencia (1815–1820):</strong> guerrillas de Vicente Guerrero y Guadalupe Victoria.</li>
+<li><strong>Consumación (1821):</strong> Plan de Iguala (Tres Garantías: Religión, Independencia y Unión), Tratados de Córdoba y entrada del Ejército Trigarante el 27 de septiembre de 1821.</li>
+</ul>`,
+facts:["16 sep 1810","Plan de Iguala","Tres Garantías","27 sep 1821"],
+images:[
+{cap:"Miguel Hidalgo"},
+{cap:"Tres Garantías"}
+],
+note:"El Plan de Iguala unió a realistas e insurgentes."},
+4:{cat:"caudillismo",catLabel:"Caudillismo",date:"1821 – 1876",title:"Era de los caudillos",icon:"icon-sword",
+body:`<p>Sin instituciones sólidas mandan hombres fuertes. Conservadores vs liberales. Santa Anna preside 11 veces. Se pierde más de la mitad del territorio (1846–1848). Juárez impulsa las Leyes de Reforma, resiste a Maximiliano y restaura la República en 1867.</p>`,
+facts:["Santa Anna × 11","1848 pérdida territorial","Leyes de Reforma","Juárez 1867"],
+images:[
+{cap:"Santa Anna"},
+{cap:"Benito Juárez"}
+],
+note:"El caudillismo temprano cierra con el Estado laico de Juárez."},
+5:{cat:"porfiriato",catLabel:"Porfiriato",date:"1876 – 1911",title:"Dictadura de Porfirio Díaz",icon:"icon-train",
+body:`<p>Díaz llega con el Plan de Tuxtepec. “Poca política, mucha administración”: paz porfiriana, ferrocarriles (de ~600 a más de 20,000 km) e inversión extranjera. También despojo de tierras y huelgas de Cananea (1906) y Río Blanco (1907).</p>`,
+facts:["Tuxtepec 1876","+20,000 km de vías","Los Científicos","Cananea y Río Blanco"],
+images:[
+{cap:"Porfirio Díaz"},
+{cap:"Ferrocarriles"}
+],
+note:"El progreso material se construyó sobre una gran desigualdad."},
+6:{cat:"revolucion",catLabel:"Revolución Mexicana",date:"1910 – 1920",title:"Revolución y Constitución de 1917",icon:"icon-star",
+body:`<p>Plan de San Luis (20 nov 1910). Caída de Díaz, Decena Trágica (1913), constitucionalismo de Carranza, Villa y Zapata. El 5 de febrero de 1917 se promulga en Querétaro una Constitución con derechos sociales: Art. 3°, 27° y 123°.</p>`,
+facts:["20 nov 1910","5 feb 1917","Art. 3°, 27° y 123°","Zapata · Villa · Carranza"],
+images:[
+{cap:"Francisco I. Madero"},
+{cap:"Emiliano Zapata"}
+],
+note:"La Constitución de 1917 fue pionera en derechos sociales."},
+7:{cat:"postrev",catLabel:"México postrevolucionario",date:"1920 – 1940",title:"De caudillos a instituciones",icon:"icon-building",
+body:`<p>Obregón y Calles. Guerra Cristera (1926–1929). Asesinato de Obregón (1928). Maximato: Calles manda a través de tres presidentes. PNR en 1929. Cárdenas rompe con Calles (1936), reparte tierra y expropia el petróleo el 18 de marzo de 1938.</p>`,
+facts:["Cristera 1926-29","Maximato","PNR 1929","Expropiación 1938"],
+images:[
+{cap:"Calles"},
+{cap:"Lázaro Cárdenas"}
+],
+note:"México debía pasar de “un país de un solo hombre” a “un país de instituciones”."},
+8:{cat:"contemporaneo",catLabel:"México contemporáneo",date:"1940 – actualidad",title:"Presidencialismo y transición",icon:"icon-modern",
+body:`<ul>
+<li><strong>Milagro Mexicano (1940–1970):</strong> industrialización y crecimiento.</li>
+<li><strong>1968:</strong> movimiento estudiantil y 2 de octubre en Tlatelolco.</li>
+<li><strong>1982 en adelante:</strong> crisis, apertura, TLCAN (1994), EZLN en Chiapas (1994).</li>
+<li><strong>2000:</strong> alternancia; termina la hegemonía de más de 70 años del PRI.</li>
+</ul>`,
+facts:["Milagro Mexicano","Tlatelolco 1968","TLCAN 1994","Alternancia 2000"],
+images:[
+{cap:"1968"},
+{cap:"TLCAN"}
+],
+note:"El siglo XX cierra con el paso de un partido hegemónico a la alternancia."}
+};
+const BG={nomada:"var(--umber-bg)",prehispanica:"var(--terracotta-bg)",virreinato:"var(--brass-bg)",independencia:"var(--oxblood-bg)",caudillismo:"var(--gold-bg)",porfiriato:"var(--slate-bg)",revolucion:"var(--bottle-bg)",postrev:"var(--indigo-bg)",contemporaneo:"#E8F0E6"};
+const TX={nomada:"var(--umber)",prehispanica:"var(--terracotta)",virreinato:"var(--brass)",independencia:"var(--oxblood)",caudillismo:"var(--gold)",porfiriato:"var(--slate)",revolucion:"var(--bottle)",postrev:"var(--indigo)",contemporaneo:"#4A6741"};
+const markers=document.querySelectorAll(".marker");
+function render(id){
+  const d=DATA[id]; if(!d) return;
+  document.getElementById("d-num").textContent=id.padStart(2,"0");
+  document.getElementById("d-date").textContent=d.date;
+  document.getElementById("d-cat").textContent=d.catLabel;
+  document.getElementById("d-title").textContent=d.title;
+  document.getElementById("d-body").innerHTML=d.body;
+  document.getElementById("d-note").textContent=d.note||"";
+  document.getElementById("d-seal").className="seal big c-"+d.cat;
+  document.getElementById("d-icon-use").setAttribute("href","#"+d.icon);
+  const ul=document.getElementById("d-facts"); ul.innerHTML="";
+  d.facts.forEach(f=>{const li=document.createElement("li");li.textContent=f;li.style.background=BG[d.cat];li.style.color=TX[d.cat];ul.appendChild(li);});
+  const grid=document.getElementById("d-images"); grid.innerHTML="";
+  (d.images||[]).forEach(img=>{
+    const fig=document.createElement("figure"); fig.className="img-card";
+    const inicial=(img.cap||"?").trim().charAt(0).toUpperCase();
+    fig.innerHTML=`<div class="swatch" style="background:${TX[d.cat]}">${inicial}</div><figcaption>${img.cap}</figcaption>`;
+    grid.appendChild(fig);
+  });
+  markers.forEach(m=>m.classList.toggle("active",m.dataset.id===id));
+}
+markers.forEach(m=>m.addEventListener("click",()=>{render(m.dataset.id);document.getElementById("dossier").scrollIntoView({behavior:"smooth",block:"start"});}));
+document.querySelectorAll(".chip").forEach(chip=>chip.addEventListener("click",()=>{
+  document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active")); chip.classList.add("active");
+  const f=chip.dataset.filter;
+  markers.forEach(m=>m.classList.toggle("dimmed",!(f==="all"||m.dataset.cat===f)));
+}));
+render("0");
+</script>
+</body>
+</html>
