@@ -110,8 +110,11 @@ footer{text-align:center;margin-top:1.8rem;font-family:var(--font-mono);font-siz
           <button class="btn ghost" id="btn-discard">Borrar partida guardada</button>
         </div>
       </div>
-      <div class="start-actions"><button class="btn" id="btn-start">Elegir dificultad y comenzar</button></div>
+      <div class="start-actions">
+        <button class="btn" id="btn-start">Elegir dificultad y comenzar</button>
+      </div>
       <p class="hint">Juego educativo. Se evalúa el efecto de cada decisión sobre el país, no una sola verdad histórica.</p>
+      <p class="hint">Funciona sin internet. Si al final tienes wifi o datos, verás enlaces opcionales para profundizar en tus áreas de mejora — nunca son necesarios para jugar.</p>
     </div>
   </section>
 
@@ -381,41 +384,58 @@ document.getElementById(v).textContent=STATE[k];
 });
 document.getElementById("v-pts").textContent=STATE.pts;
 }
-function rank(){
-if(STATE.pts>=250)return"Maestra o maestro de la Nación";
-if(STATE.pts>=165)return"Estadista responsable";
-if(STATE.pts>=95)return"Gobernante irregular";
-if(STATE.pts>=25)return"Caudillo con saldo mixto";
+function rank(pts){
+if(pts===undefined)pts=STATE.pts;
+if(pts>=250)return"Maestra o maestro de la Nación";
+if(pts>=165)return"Estadista responsable";
+if(pts>=95)return"Gobernante irregular";
+if(pts>=25)return"Caudillo con saldo mixto";
 return"Expediente adverso";
 }
-function tasaExitoError(){
-const total=STATE.log.length;
-const buenas=STATE.log.filter(x=>x.tipo==="buena").length;
-const malas=STATE.log.filter(x=>x.tipo==="mala").length;
+function tasaExitoError(log){
+if(log===undefined)log=STATE.log;
+const total=log.length;
+const buenas=log.filter(x=>x.tipo==="buena").length;
+const malas=log.filter(x=>x.tipo==="mala").length;
 const exito=total?Math.round((buenas/total)*100):0;
 const error=total?Math.round((malas/total)*100):0;
 return{total,buenas,malas,exito,error};
 }
-function areasDeMejora(){
+function areasDeMejora(target){
+if(target===undefined)target=STATE;
 const dims=[
-{k:"est",label:"Estabilidad",tip:"Cuidado con resolver crisis con golpes, hombres fuertes o pactos de emergencia: dan calma inmediata pero debilitan las reglas del juego a largo plazo."},
-{k:"jus",label:"Justicia",tip:"Revisa las decisiones que reprimen protestas, despojan tierras comunales o ignoran derechos sociales: suelen dar estabilidad rápida y un costo social alto."},
-{k:"sob",label:"Soberanía",tip:"Ten cuidado al ceder territorio, recursos o control económico a potencias extranjeras a cambio de paz o inversión inmediata."},
-{k:"ins",label:"Instituciones",tip:"Evita que el poder dependa de una sola persona; prioriza reglas, contrapesos y proyectos políticos que sobrevivan a un solo gobierno."}
+{k:"est",label:"Estabilidad",tip:"Cuidado con resolver crisis con golpes, hombres fuertes o pactos de emergencia: dan calma inmediata pero debilitan las reglas del juego a largo plazo.",tema:"Caudillismo en México"},
+{k:"jus",label:"Justicia",tip:"Revisa las decisiones que reprimen protestas, despojan tierras comunales o ignoran derechos sociales: suelen dar estabilidad rápida y un costo social alto.",tema:"Reforma agraria en México"},
+{k:"sob",label:"Soberanía",tip:"Ten cuidado al ceder territorio, recursos o control económico a potencias extranjeras a cambio de paz o inversión inmediata.",tema:"Soberanía territorial de México"},
+{k:"ins",label:"Instituciones",tip:"Evita que el poder dependa de una sola persona; prioriza reglas, contrapesos y proyectos políticos que sobrevivan a un solo gobierno.",tema:"Instituciones políticas de México"}
 ];
-const debiles=dims.filter(d=>STATE[d.k]<50).sort((a,b)=>STATE[a.k]-STATE[b.k]);
+const debiles=dims.filter(d=>target[d.k]<50).sort((a,b)=>target[a.k]-target[b.k]);
 let html="<h3>Áreas de mejora</h3>";
 if(debiles.length){
-html+="<ul>"+debiles.map(d=>`<li><strong>${d.label} (${STATE[d.k]}/100):</strong> ${d.tip}</li>`).join("")+"</ul>";
+html+="<ul>"+debiles.map(d=>`<li><strong>${d.label} (${target[d.k]}/100):</strong> ${d.tip}</li>`).join("")+"</ul>";
 }else{
 html+="<p>No hay dimensiones críticas: estabilidad, justicia, soberanía e instituciones terminaron por arriba de 50/100.</p>";
 }
-const malas=STATE.log.filter(x=>x.tipo==="mala");
+const malas=target.log.filter(x=>x.tipo==="mala");
 if(malas.length){
 html+=`<p>Decisiones para repasar en tu próxima partida:</p><ul>${malas.map(x=>`<li>${x.year} — ${x.label}</li>`).join("")}</ul>`;
 }
+html+=`<div id="online-extra">${onlineExtraHTML(debiles,malas)}</div>`;
 return html;
 }
+function onlineExtraHTML(debiles,malas){
+if(!navigator.onLine)return"";
+const temas=[...debiles.map(d=>d.tema),...malas.slice(0,3).map(x=>x.label.split(" ").slice(0,6).join(" "))];
+if(!temas.length)return"";
+const vistos=new Set();
+const unicos=temas.filter(t=>{if(vistos.has(t))return false;vistos.add(t);return true;}).slice(0,5);
+return`<p class="hint">Detectamos conexión a internet: esto es opcional, solo para profundizar (el juego y esta retroalimentación funcionan igual sin conexión).</p>
+<ul>${unicos.map(t=>`<li><a href="https://es.wikipedia.org/w/index.php?search=${encodeURIComponent(t)}" target="_blank" rel="noopener">Leer más sobre: ${t}</a></li>`).join("")}</ul>`;
+}
+window.addEventListener("online",()=>{
+const end=document.getElementById("screen-end");
+if(end&&end.classList.contains("on")){document.getElementById("end-improve").innerHTML=areasDeMejora();}
+});
 function showEnd(kind,title,html){
 document.getElementById("hud").hidden=false;renderHUD();
 document.getElementById("screen-play").classList.remove("on");
@@ -452,6 +472,7 @@ return showEnd("Final adverso","El saldo no alcanza","<p>El expediente quedó po
 }
 function go(id){
 if(id==="ending"){endingFromState();return;}
+document.getElementById("btn-pause").hidden=false;
 const sc=SCENES[id];STATE.scene=id;
 document.getElementById("screen-start").classList.remove("on");
 document.getElementById("screen-end").classList.remove("on");
@@ -540,6 +561,7 @@ STATE.diff=diff;
 document.getElementById("screen-difficulty").classList.remove("on");
 go("s0");
 }
+
 function checkSavedGame(){
 const box=document.getElementById("resume-box");
 box.hidden=!localStorage.getItem(SAVE_KEY);
@@ -568,7 +590,7 @@ document.getElementById("screen-difficulty").classList.remove("on");
 document.getElementById("screen-start").classList.add("on");
 };
 document.querySelectorAll(".diff-card").forEach(btn=>{
-btn.onclick=()=>startWithDifficulty(btn.dataset.diff);
+btn.onclick=()=>{startWithDifficulty(btn.dataset.diff);};
 });
 document.getElementById("btn-again").onclick=()=>{reset();};
 document.getElementById("btn-resume").onclick=()=>{
